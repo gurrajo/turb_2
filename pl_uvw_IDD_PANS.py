@@ -18,7 +18,7 @@ nk=34
 viscos=1./5200.
 
 # loop over nfiles
-nfiles=16
+nfiles=3
 #initialize fields
 u3d_nfiles=np.zeros((ni,nj,nk,nfiles+1))
 v3d_nfiles=np.zeros((ni,nj,nk,nfiles+1))
@@ -167,3 +167,31 @@ plt.xlabel("$y$")
 plt.savefig('kres.png')
 
 plt.show()
+
+# T.5
+
+
+dudx, dudy, dudz = np.gradient(u3d, dx, y, dz)
+dvdx, dvdy, dvdz = np.gradient(v3d, dx, y, dz)
+
+C_mu = 0.09
+f_mu = 0.4
+nu_t = C_mu*f_mu*(te3d[:,1:,:]**2)/eps3d[:,1:,:]
+
+tau_12 = -2*nu_t*(dudy[:,1:,:] + dvdx[:,1:,:])
+
+tau_12_mean=np.mean(tau_12, axis=(0,2))
+
+fig1,ax1 = plt.subplots()
+plt.subplots_adjust(left=0.20,bottom=0.20)
+plt.plot(y[1:],tau_12_mean,'b-')
+plt.plot(y[1:],uvmean1[1:],'g-')
+plt.ylabel("stress")
+plt.xlabel("y")
+plt.legend(["modeled","resolved"])
+plt.savefig('shear_stress.png')
+
+plt.show()
+
+# T.6
+
