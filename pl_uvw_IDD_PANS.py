@@ -159,8 +159,8 @@ k_res = (uumean + vvmean + wwmean)/2
 fig1,ax1 = plt.subplots()
 plt.subplots_adjust(left=0.20,bottom=0.20)
 
-plt.plot(y,k_res,'b-')
-plt.plot(y,temean,'g-')
+plt.plot(y[1:],k_res[1:],'b-')
+plt.plot(y[1:],temean[1:],'g-')
 plt.ylabel("$k_{res}$")
 plt.xlabel("$y$")
 
@@ -194,4 +194,39 @@ plt.savefig('shear_stress.png')
 plt.show()
 
 # T.6
+C_des = 0.65
+d_x = np.ones((1, nj))*dx
+d_z = np.ones((1, nj))*dz
+delta = np.maximum(d_x, dy)
+delta = np.maximum(delta, d_z)
+d = np.zeros((1, nj))
+for j in range(nj):
+    d_bot = abs(y[j]-y[0])
+    d_top = abs(y[j]-y[-1])
+    d[0,j] = min(d_bot, d_top)
 
+d_bar = np.minimum(d, delta*C_des)
+
+Lt = temean[1:]**(3/2)/epsmean[1:]
+F_des = np.maximum(Lt/(C_des*delta[0, 1:]), 1)
+
+beta_star = C_mu
+
+omega = epsmean/(beta_star*temean)
+xi = np.maximum(2*temean[1:]**(3/2)/(epsmean[1:]*y[1:]), 500*viscos/(omega[1:]*y[1:]**2))
+
+F_2 = np.tanh(xi**2)
+
+F_ddes = np.maximum(Lt/(C_des*delta[0, 1:])*(1-F_2), 1)
+
+fig1,ax1 = plt.subplots()
+plt.subplots_adjust(left=0.20,bottom=0.20)
+plt.plot(y[1:],d_bar[0,1:])
+plt.plot(y[1:],F_des)
+plt.plot(y[1:],F_ddes)
+plt.ylabel("stress")
+plt.xlabel("y")
+plt.legend(["d_bar","F_des","F_ddes"])
+plt.savefig('interface_loc.png')
+
+plt.show()
