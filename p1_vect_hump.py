@@ -78,6 +78,7 @@ v_2d=np.reshape(v,(ni,nj))
 fk_2d=np.reshape(fk,(ni,nj))
 uu_2d=np.reshape(uu,(ni,nj))
 uv_2d=np.reshape(uv,(ni,nj))
+uv_model_2d=np.reshape(uv_model,(ni,nj))
 vv_2d=np.reshape(vv,(ni,nj))
 ww_2d=np.reshape(ww,(ni,nj))
 k_model_2d=np.reshape(k_model,(ni,nj))
@@ -164,4 +165,27 @@ plt.ylabel("$y$")
 plt.axis([0.6,1.5,0,1])
 plt.title("vector plot")
 plt.savefig('vect_python.png')
+
+ind_065 = 8
+
+fig1,ax1 = plt.subplots()
+plt.subplots_adjust(left=0.20, bottom=0.20)
+plt.plot(y_2d[ind_065, :], uv_2d[ind_065, :])
+plt.plot(y_2d[ind_065, :], uv_model_2d[ind_065, :])
+plt.xlabel("$y$")
+plt.ylabel("$uv$")
+plt.title("stress modeled and resolved")
+plt.legend(["Resolved","Modeled"])
+plt.savefig('stress.png')
+
+nu_t_nu = (vis_2d-viscos)/viscos
+
+fig1,ax1 = plt.subplots()
+plt.subplots_adjust(left=0.20, bottom=0.20)
+plt.plot(y_2d[ind_065, :], nu_t_nu[ind_065, :])
+plt.xlabel("$y$")
+plt.ylabel(r"$\frac{\nu_t}{\nu}$")
+plt.title("turbulent viscosity")
+plt.savefig('turb_vis.png')
+
 
