@@ -207,3 +207,18 @@ nu_t_dvdy_dx, nu_t_dvdy_dy = dphidx_dy(x_2d_new,y_2d_new,nu_t*v_2d)
 U1_left_1 = (nu_t_dudx_dx + nu_t_dudy_dy)
 U1_left_2 = (nu_t_dvdx_dx + nu_t_dvdy_dy)
 
+C_des = 0.65
+d_x = np.ones((1, nj))*dx
+d_z = np.ones((1, nj))*dz
+delta = np.maximum(d_x, dy)
+delta = np.maximum(delta, d_z)
+d = np.zeros((1, nj))
+for j in range(nj):
+    d_bot = abs(y[j]-y[0])
+    d_top = abs(y[j]-y[-1])
+    d[0,j] = min(d_bot, d_top)
+
+d_bar = np.minimum(d, delta*C_des)
+
+Lt = k[1:]**(3/2)/diss_2d[1:]
+
