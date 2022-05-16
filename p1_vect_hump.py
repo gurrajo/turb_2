@@ -99,7 +99,7 @@ y_2d_new=np.delete(y_2d,-1,0)
 y_2d_new=np.delete(y_2d_new,-1,1)
 # compute the gradient
 dudx,dudy=dphidx_dy(x_2d_new,y_2d_new,u_2d)
-
+dvdx,dvdy=dphidx_dy(x_2d_new,y_2d_new,v_2d)
 
 #*************************
 # plot u
@@ -166,6 +166,7 @@ plt.axis([0.6,1.5,0,1])
 plt.title("vector plot")
 plt.savefig('vect_python.png')
 
+# U.2
 ind_065 = 8
 
 fig1,ax1 = plt.subplots()
@@ -179,6 +180,7 @@ plt.legend(["Resolved","Modeled"])
 plt.savefig('stress.png')
 
 nu_t_nu = (vis_2d-viscos)/viscos
+nu_t = vis_2d-viscos
 
 fig1,ax1 = plt.subplots()
 plt.subplots_adjust(left=0.20, bottom=0.20)
@@ -188,4 +190,20 @@ plt.ylabel(r"$\frac{\nu_t}{\nu}$")
 plt.title("turbulent viscosity")
 plt.savefig('turb_vis.png')
 
+# U.3
+# i = 1
+duudx,duudy=dphidx_dy(x_2d_new,y_2d_new,uu_2d)
+duvdx,duvdy=dphidx_dy(x_2d_new,y_2d_new,uv_2d)
+dvvdx,dvvdy=dphidx_dy(x_2d_new,y_2d_new,vv_2d)
+
+U1_right_1 = -(duudx + duvdy)
+U1_right_2 = -(duvdx + dvvdy)
+
+nu_t_dudx_dx, nu_t_dudx_dy = dphidx_dy(x_2d_new,y_2d_new,nu_t*u_2d)
+nu_t_dudy_dx, nu_t_dudy_dy = dphidx_dy(x_2d_new,y_2d_new,nu_t*u_2d)
+nu_t_dvdx_dx, nu_t_dvdx_dy = dphidx_dy(x_2d_new,y_2d_new,nu_t*v_2d)
+nu_t_dvdy_dx, nu_t_dvdy_dy = dphidx_dy(x_2d_new,y_2d_new,nu_t*v_2d)
+
+U1_left_1 = (nu_t_dudx_dx + nu_t_dudy_dy)
+U1_left_2 = (nu_t_dvdx_dx + nu_t_dvdy_dy)
 
