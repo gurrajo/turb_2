@@ -87,6 +87,8 @@ diss_2d=np.reshape(diss,(ni,nj))
 x_2d=np.transpose(np.reshape(x,(nj,ni)))
 y_2d=np.transpose(np.reshape(y,(nj,ni)))
 
+
+
 # set fk_2d=1 at upper boundary
 fk_2d[:,nj-1]=fk_2d[:,nj-2]
 

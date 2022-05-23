@@ -101,6 +101,7 @@ dy = np.delete(dy, 0, 0)
 dz2d = np.ones((ni,nj))*dz
 delta = np.maximum(dx,dy)
 delta = np.maximum(delta,dz2d)
+
 dw = np.zeros((ni,nj))
 for i in range(ni):
     for j in range(nj):
@@ -130,12 +131,12 @@ for i in range(ni):
 C_mu = 0.09
 Lt = C_mu*kres2d**(3/2)/eps2d
 nu_t = vis2d-viscos
-kappa = 1/Lt
+kappa = 0.41
 
-r_dt = vis2d/((kappa**2)*(dw**2)*np.maximum(s2_abs2d, np.ones((ni, nj))*10**-10))
+r_dt = nu_t/((kappa**2)*(dw**2)*s2_abs2d)
 
 f_dt = 1 - np.tanh((8*r_dt)**3)
-h_max = 0.0128
+h_max = np.max(y2d[:, 0])
 alpha = 0.25 - dw/h_max
 f_B = np.minimum(2*np.exp(-9*(alpha**2)), np.ones((ni, nj)))
 
@@ -166,10 +167,10 @@ for i in range(ni):
 
 fig1,ax1 = plt.subplots()
 plt.subplots_adjust(left=0.20,bottom=0.20)
-plt.plot(xp2d[:,0],iddes_ref_loc)
+#plt.plot(xp2d[:,0],iddes_ref_loc)
 plt.plot(xp2d[:,0],fd_switch)
-plt.plot(xp2d[:,0],SA_DES_switch)
-plt.plot(xp2d[:,0],sst_des_switch)
+#plt.plot(xp2d[:,0],SA_DES_switch)
+#plt.plot(xp2d[:,0],sst_des_switch)
 plt.plot(xp2d[:,0],fdt_switch)
 plt.plot(x2d[:,0],y2d[:,0], 'k')
 plt.xlabel("$x$")

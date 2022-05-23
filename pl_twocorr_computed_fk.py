@@ -63,7 +63,6 @@ w_y_z_t_80= np.swapaxes(w_y_z_t,0,2)
 
 
 
-
 # x=1.1 
 w_time = np.loadtxt("w_time_z110.dat")
 
@@ -143,5 +142,30 @@ for jj in range (0,nj):
       yp2d[ii,jj]=0.25*(y_2d[i,j]+y_2d[im1,j]+y_2d[i,jm1]+y_2d[im1,jm1])
 
 z = np.linspace(0,0.1,nk)
+
+
+
+
+B33 = np.zeros((4,5,16))
+for j in range(5):
+   for k in range(16):
+      for N in range(1,n):
+         B33[0,j,k] = B33[0,j,k] + w_y_z_t_65[0, j, N]*w_y_z_t_65[0+k, j, N] / n
+         B33[1,j,k] = B33[1,j,k] + w_y_z_t_80[0, j, N]*w_y_z_t_80[0+k, j, N] / n
+         B33[2,j,k] = B33[2,j,k] + w_y_z_t_110[0, j, N]*w_y_z_t_110[0+k, j, N] / n
+         B33[3,j,k] = B33[3,j,k] + w_y_z_t_130[0, j, N]*w_y_z_t_130[0+k, j, N] / n
+for j in range(5):
+   for i in range(4):
+      B33[i,j,:] = B33[i,j,:]/B33[i,j,0]
+
+
+
+for i in range(4):
+   fig1, ax1 = plt.subplots()
+   plt.subplots_adjust(left=0.20, bottom=0.20)
+   plt.plot(z, np.transpose(B33[i,:,:]))
+   plt.xlabel("$z$")
+   plt.ylabel("$B33$")
+   plt.title("two point correlation")
 
 
