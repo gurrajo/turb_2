@@ -129,14 +129,21 @@ for i in range(ni):
 
 
 C_mu = 0.09
-Lt = C_mu*kres2d**(3/2)/eps2d
+Lt = C_mu*(k_model2d + kres2d)**(3/2)/eps2d
 nu_t = vis2d-viscos
+boundary = np.zeros((ni, 1))
+for i in range(ni):
+    for j in range(20,nj):
+        if nu_t[i, j]/viscos < 1:
+            boundary[i, 0] = yp2d[i, j]
+            break
+
 kappa = 0.41
 
 r_dt = nu_t/((kappa**2)*(dw**2)*s2_abs2d)
 
 f_dt = 1 - np.tanh((8*r_dt)**3)
-h_max = np.max(y2d[:, 0])
+h_max = 0.128
 alpha = 0.25 - dw/h_max
 f_B = np.minimum(2*np.exp(-9*(alpha**2)), np.ones((ni, nj)))
 
@@ -155,7 +162,7 @@ for i in range(ni):
             break
 
 
-F_DES = np.maximum(kres2d**(3/2)/(C_des*eps2d*delta), np.ones((ni,nj)))
+F_DES = np.maximum(Lt/(C_des*delta), np.ones((ni,nj)))
 
 sst_des_switch = np.zeros((ni,1))
 
@@ -167,13 +174,73 @@ for i in range(ni):
 
 fig1,ax1 = plt.subplots()
 plt.subplots_adjust(left=0.20,bottom=0.20)
-#plt.plot(xp2d[:,0],iddes_ref_loc)
-plt.plot(xp2d[:,0],fd_switch)
+plt.plot(xp2d[:,0],iddes_ref_loc)
+#plt.plot(xp2d[:,0],fd_switch)
 #plt.plot(xp2d[:,0],SA_DES_switch)
 #plt.plot(xp2d[:,0],sst_des_switch)
-plt.plot(xp2d[:,0],fdt_switch)
+#plt.plot(xp2d[:,0],fdt_switch)
 plt.plot(x2d[:,0],y2d[:,0], 'k')
 plt.xlabel("$x$")
 plt.ylabel("$y$")
 plt.title("interface location")
 plt.savefig('psi.eps')
+
+ind_065 = 290
+ind_08 = 326
+ind_11 = 386
+ind_13 = 426
+
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], psi2d[ind_065, :])
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], f_d[ind_065, :], '--')
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], psi2d[ind_08, :])
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], f_d[ind_08, :], '--')
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], psi2d[ind_11, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], f_d[ind_11, :], '--')
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], psi2d[ind_13, :])
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], f_d[ind_13, :], '--')
+plt.xlabel("$y$")
+plt.ylabel("Blending functions", rotation=90, size=18)
+plt.yticks(size=14)
+plt.legend([r"$\psi$", "f_d"])
+plt.grid()
+plt.xlim([0, 0.1])
+plt.title(r"$\psi$ and f_d [x = 0.65, 0.8, 1.1, 1.3]")
+plt.savefig('Blending_U4.eps')
+
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(xp2d[:, 0], iddes_ref_loc)
+plt.plot(xp2d[:, 0], SA_DES_switch)
+plt.plot(xp2d[:, 0], sst_des_switch)
+plt.plot(xp2d[:, 0], fdt_switch)
+plt.plot(xp2d[:, 0], fd_switch)
+plt.plot(xp2d[:, 0], boundary)
+plt.plot(x2d[:, 0], y2d[:,0], 'k')
+plt.xlabel("$x$")
+plt.ylabel("switch location [y]", rotation=90, size=18)
+plt.ylim([0,np.max(y)])
+plt.yticks(size=14)
+plt.legend(["IDDES", "SA DES", "SST DES", "DDES (f_dt)","f_d" ,r"Boundary layer $(\nu_t/\nu)$", "Wall"], prop={"size": 10})
+plt.grid()
+plt.title("Interface location")
+plt.savefig('interface.eps')
+
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(xp2d[:, 0], iddes_ref_loc)
+plt.plot(xp2d[:, 0], SA_DES_switch)
+plt.plot(xp2d[:, 0], sst_des_switch)
+plt.plot(xp2d[:, 0], fdt_switch)
+plt.plot(xp2d[:, 0], fd_switch)
+plt.plot(xp2d[:, 0], boundary)
+plt.plot(x2d[:, 0], y2d[:,0], 'k')
+plt.xlabel("$x$")
+plt.ylabel("switch location [y]", rotation=90, size=18)
+plt.ylim([0,0.15])
+plt.yticks(size=14)
+plt.legend(["IDDES", "SA DES", "SST DES", "DDES (f_dt)","f_d",r"Boundary layer $(\nu_t/\nu)$", "Wall"], prop={"size": 10})
+plt.grid()
+plt.title("Interface location")
+plt.savefig('interface_zoom.eps')

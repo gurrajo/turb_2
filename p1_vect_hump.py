@@ -18,8 +18,18 @@ nj=122
 
 nim1=ni-1
 njm1=nj-1
-
 # read data file
+
+vectz=np.genfromtxt("vectz_zonal_pans.dat",comments="%")
+ntstep=vectz[0]
+n=len(vectz)
+nn=12
+nst=0
+ivis=range(nst+10,n,nn)
+
+vis=vectz[ivis]/ntstep
+
+vis_2d_212=np.reshape(vis,(ni,nj)) #this is to total viscosity, i.e. vis_tot=vis+vis_turb
 vectz=np.genfromtxt("vectz_aiaa_paper.dat",comments="%")
 ntstep=vectz[0]
 n=len(vectz)
@@ -86,6 +96,7 @@ vis_2d=np.reshape(vis,(ni,nj)) #this is to total viscosity, i.e. vis_tot=vis+vis
 diss_2d=np.reshape(diss,(ni,nj))
 x_2d=np.transpose(np.reshape(x,(nj,ni)))
 y_2d=np.transpose(np.reshape(y,(nj,ni)))
+
 
 
 
@@ -170,27 +181,43 @@ plt.savefig('vect_python.png')
 
 # U.2
 ind_065 = 8
+ind_08 = 44
+ind_11 = 105
+ind_13 = 145
+
+delta = 0.235
 
 fig1,ax1 = plt.subplots()
 plt.subplots_adjust(left=0.20, bottom=0.20)
-plt.plot(y_2d[ind_065, :], uv_2d[ind_065, :])
-plt.plot(y_2d[ind_065, :], uv_model_2d[ind_065, :])
-plt.xlabel("$y$")
+plt.plot(y_2d[ind_065, :]-y_2d[ind_065, 0], uv_2d[ind_065, :],'--')
+plt.plot(y_2d[ind_065, :]-y_2d[ind_065, 0], uv_model_2d[ind_065, :])
+plt.plot(y_2d[ind_08, :]-y_2d[ind_08, 0], uv_2d[ind_08, :],'--')
+plt.plot(y_2d[ind_08, :]-y_2d[ind_08, 0], uv_model_2d[ind_08, :])
+plt.plot(y_2d[ind_11, :]-y_2d[ind_11, 0], uv_2d[ind_11, :],'--')
+plt.plot(y_2d[ind_11, :]-y_2d[ind_11, 0], uv_model_2d[ind_11, :])
+plt.plot(y_2d[ind_13, :]-y_2d[ind_13, 0], uv_2d[ind_13, :],'--')
+plt.plot(y_2d[ind_13, :]-y_2d[ind_13, 0], uv_model_2d[ind_13, :])
+plt.xlabel("distance from wall")
 plt.ylabel("$uv$")
-plt.title("stress modeled and resolved")
-plt.legend(["Resolved","Modeled"])
-plt.savefig('stress.png')
+plt.title("stress")
+plt.legend(["Resolved 0.65","Modeled 0.65", "Resolved 0.8","Modeled 0.8", "Resolved 1.1","Modeled 1.1", "Resolved 1.3","Modeled 1.3"], prop={'size': 10})
+plt.xlim([0, 0.05])
+plt.savefig('stress_2b.eps')
 
 nu_t_nu = (vis_2d-viscos)/viscos
+nu_t_nu_212 = (vis_2d_212-viscos)/viscos
 nu_t = vis_2d-viscos
 
-fig1,ax1 = plt.subplots()
-plt.subplots_adjust(left=0.20, bottom=0.20)
-plt.plot(y_2d[ind_065, :], nu_t_nu[ind_065, :])
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(y_2d[ind_11, :], nu_t_nu[ind_11, :])
+plt.plot(y_2d[ind_11, :], nu_t_nu_212[ind_11, :])
 plt.xlabel("$y$")
-plt.ylabel(r"$\frac{\nu_t}{\nu}$")
-plt.title("turbulent viscosity")
-plt.savefig('turb_vis.png')
+plt.ylabel(r"$\frac{\nu_t}{\nu}$", rotation=0, size=26)
+plt.legend(["212", "178"])
+plt.grid()
+plt.title("turbulent viscosity [x = 1.1]")
+plt.savefig('turb_vis.eps')
 
 # U.3
 # i = 1
@@ -209,18 +236,26 @@ nu_t_dvdy_dx, nu_t_dvdy_dy = dphidx_dy(x_2d_new,y_2d_new,nu_t*v_2d)
 U1_left_1 = (nu_t_dudx_dx + nu_t_dudy_dy)
 U1_left_2 = (nu_t_dvdx_dx + nu_t_dvdy_dy)
 
-C_des = 0.65
-d_x = np.ones((1, nj))*dx
-d_z = np.ones((1, nj))*dz
-delta = np.maximum(d_x, dy)
-delta = np.maximum(delta, d_z)
-d = np.zeros((1, nj))
-for j in range(nj):
-    d_bot = abs(y[j]-y[0])
-    d_top = abs(y[j]-y[-1])
-    d[0,j] = min(d_bot, d_top)
 
-d_bar = np.minimum(d, delta*C_des)
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(y_2d[ind_11, :], U1_right_1[ind_11, :])
+plt.plot(y_2d[ind_11, :], U1_right_2[ind_11, :])
+plt.xlabel("$y$")
+plt.ylabel("div stresses", rotation=90, size=20)
+plt.legend(["i = 1", "i = 2"])
+plt.grid()
+plt.title("U1 eq. resolved")
+plt.savefig('div_stress_right.eps')
 
-Lt = k[1:]**(3/2)/diss_2d[1:]
-
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(y_2d[ind_11, :], U1_left_1[ind_11, :])
+plt.plot(y_2d[ind_11, :], U1_left_2[ind_11, :])
+plt.xlabel("$y$")
+plt.ylabel("div stresses", rotation=90, size=18)
+plt.yticks(size=14)
+plt.legend(["i = 1", "i = 2"])
+plt.grid()
+plt.title("U1 eq. modeled")
+plt.savefig('div_stress_left.eps')

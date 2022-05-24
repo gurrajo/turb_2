@@ -18,7 +18,7 @@ nk=34
 viscos=1./5200.
 
 # loop over nfiles
-nfiles=3
+nfiles=16
 #initialize fields
 u3d_nfiles=np.zeros((ni,nj,nk,nfiles+1))
 v3d_nfiles=np.zeros((ni,nj,nk,nfiles+1))
@@ -161,10 +161,12 @@ plt.subplots_adjust(left=0.20,bottom=0.20)
 
 plt.plot(y[1:],k_res[1:],'b-')
 plt.plot(y[1:],temean[1:],'g-')
-plt.ylabel("$k_{res}$")
+plt.plot(y[1:],temean[1:]+k_res[1:],'r')
+plt.legend(["modeled", "resolved", "sum"])
+plt.grid()
+plt.ylabel("$k}$")
 plt.xlabel("$y$")
-
-plt.savefig('kres.png')
+plt.savefig('kres.eps')
 
 plt.show()
 
@@ -178,6 +180,10 @@ C_mu = 0.09
 f_mu = 0.4
 nu_t = C_mu*f_mu*(te3d[:,1:,:]**2)/eps3d[:,1:,:]
 
+nu_t_mean = np.mean(nu_t, axis=(0,2))
+
+nu_t_nu = nu_t_mean/viscos
+
 tau_12 = -2*nu_t*(dudy[:,1:,:] + dvdx[:,1:,:])
 
 tau_12_mean=np.mean(tau_12, axis=(0,2))
@@ -188,8 +194,9 @@ plt.plot(y[1:],tau_12_mean,'b-')
 plt.plot(y[1:],uvmean1[1:],'g-')
 plt.ylabel("stress")
 plt.xlabel("y")
-plt.legend(["modeled","resolved"])
-plt.savefig('shear_stress.png')
+plt.grid()
+plt.legend(["modeled", "resolved"])
+plt.savefig('shear_stress.eps')
 
 plt.show()
 
@@ -202,13 +209,12 @@ delta = np.maximum(delta, d_z)
 d = np.zeros((1, nj))
 for j in range(nj):
     d_bot = abs(y[j]-y[0])
-    d_top = abs(y[j]-y[-1])
-    d[0,j] = min(d_bot, d_top)
+    d[0,j] = d_bot
 
 d_bar = np.minimum(d, delta*C_des)
 
-Lt = temean[1:]**(3/2)/epsmean[1:]
-F_des = np.maximum(Lt/(C_des*delta[0, 1:]), 1)
+Lt = C_mu*(temean+k_res)**(3/2)/np.maximum(epsmean, np.ones((1, nj))**-10)
+F_DES = np.maximum(Lt/(C_des*delta), np.ones((1,nj)))
 
 beta_star = C_mu
 
@@ -217,16 +223,18 @@ xi = np.maximum(2*temean[1:]**(3/2)/(epsmean[1:]*y[1:]), 500*viscos/(omega[1:]*y
 
 F_2 = np.tanh(xi**2)
 
-F_ddes = np.maximum(Lt/(C_des*delta[0, 1:])*(1-F_2), 1)
+F_ddes = np.maximum(Lt[0,1:]/(C_des*delta[0, 1:])*(1-F_2), np.ones((1,nj-1)))
 
 fig1,ax1 = plt.subplots()
 plt.subplots_adjust(left=0.20,bottom=0.20)
 plt.plot(y[1:],d_bar[0,1:])
-plt.plot(y[1:],F_des)
-plt.plot(y[1:],F_ddes)
-plt.ylabel("stress")
+plt.plot(y[1:],d[0,1:])
+plt.plot(y,np.transpose(F_DES))
+plt.plot(y[1:],np.transpose(F_ddes))
+plt.grid()
+plt.ylabel("blending functions")
 plt.xlabel("y")
-plt.legend(["d_bar","F_des","F_ddes"])
-plt.savefig('interface_loc.png')
+plt.legend([r"\bar{d}","d","F_des","F_ddes"], prop={'size': 10})
+plt.savefig('interface_loc.eps')
 
 plt.show()
