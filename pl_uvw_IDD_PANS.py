@@ -156,13 +156,12 @@ wwmean = np.mean((w3d-wmean[None,:,None])*(w3d-wmean[None,:,None]), axis=(0,2))
 
 k_res = (uumean + vvmean + wwmean)/2
 
-fig1,ax1 = plt.subplots()
-plt.subplots_adjust(left=0.20,bottom=0.20)
-
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15,bottom=0.15)
 plt.plot(y[1:],k_res[1:],'b-')
 plt.plot(y[1:],temean[1:],'g-')
 plt.plot(y[1:],temean[1:]+k_res[1:],'r')
-plt.legend(["modeled", "resolved", "sum"])
+plt.legend(["Resolved", "modeled", "sum"])
 plt.grid()
 plt.ylabel("$k}$")
 plt.xlabel("$y$")
@@ -188,14 +187,15 @@ tau_12 = -2*nu_t*(dudy[:,1:,:] + dvdx[:,1:,:])
 
 tau_12_mean=np.mean(tau_12, axis=(0,2))
 
-fig1,ax1 = plt.subplots()
-plt.subplots_adjust(left=0.20,bottom=0.20)
-plt.plot(y[1:],tau_12_mean,'b-')
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15,bottom=0.15)
 plt.plot(y[1:],uvmean1[1:],'g-')
+plt.plot(y[1:],tau_12_mean,'b-')
+
 plt.ylabel("stress")
 plt.xlabel("y")
 plt.grid()
-plt.legend(["modeled", "resolved"])
+plt.legend(["Resolved", "modeled"])
 plt.savefig('shear_stress.eps')
 
 plt.show()
@@ -213,24 +213,25 @@ for j in range(nj):
 
 d_bar = np.minimum(d, delta*C_des)
 
-Lt = C_mu*(temean+k_res)**(3/2)/np.maximum(epsmean, np.ones((1, nj))**-10)
+Lt = (C_mu*(k_res + temean)**(3/2))/np.maximum(epsmean, np.ones((1, nj))**-10)
 F_DES = np.maximum(Lt/(C_des*delta), np.ones((1,nj)))
 
 beta_star = C_mu
 
 omega = epsmean/(beta_star*temean)
-xi = np.maximum(2*temean[1:]**(3/2)/(epsmean[1:]*y[1:]), 500*viscos/(omega[1:]*y[1:]**2))
+xi = np.maximum(2*temean[1:]**(3/2)/(epsmean[1:]*y[1:]), 500*viscos/(omega[1:]*(y[1:]**2)))
 
 F_2 = np.tanh(xi**2)
 
-F_ddes = np.maximum(Lt[0,1:]/(C_des*delta[0, 1:])*(1-F_2), np.ones((1,nj-1)))
+F_ddes = np.maximum((Lt[0,1:]/(C_des*delta[0, 1:]))*(1-F_2), np.ones((1,nj-1)))
 
-fig1,ax1 = plt.subplots()
+fig1,ax1 = plt.subplots(figsize=(10,6))
 plt.subplots_adjust(left=0.20,bottom=0.20)
 plt.plot(y[1:],d_bar[0,1:])
 plt.plot(y[1:],d[0,1:])
 plt.plot(y,np.transpose(F_DES))
 plt.plot(y[1:],np.transpose(F_ddes))
+
 plt.grid()
 plt.ylabel("blending functions")
 plt.xlabel("y")

@@ -56,7 +56,6 @@ uu2d=uu2d-u2d**2                                #streamwise resolved normal stre
 vv2d=vv2d-v2d**2                                #streamwise resolved normal stress
 uv2d=uv2d-u2d*v2d                               #streamwise resolved shear stress
 
-
 kres2d=0.5*(uu2d+vv2d+ww2d)
 
 
@@ -103,12 +102,12 @@ delta = np.maximum(dx,dy)
 delta = np.maximum(delta,dz2d)
 
 dw = np.zeros((ni,nj))
+z_max = 0.1
 for i in range(ni):
     for j in range(nj):
         bot = abs((yp2d[i,j]-y2d[i, 0]))
-        top = abs((yp2d[i,j] - y2d[i, -1]))
-
-        dw[i, j] = np.minimum(top, bot)
+        side = z_max
+        dw[i, j] = np.min([bot, side])
 
 iddes_ref_loc = np.zeros((ni,1))
 for i in range(ni):
@@ -118,34 +117,35 @@ for i in range(ni):
             break
 
 L_les = C_des*delta
-psi_SA_DES = L_les/dw
-psi_SA_DES = np.minimum(np.ones((ni,nj)), psi_SA_DES)
+psi_SA_DES = dw/L_les
+psi_SA_DES = np.maximum(1, psi_SA_DES)
 SA_DES_switch = np.zeros((ni,1))
 for i in range(ni):
     for j in range(nj):
-        if psi_SA_DES[i, j] < 1:
+        if psi_SA_DES[i, j] > 1:
             SA_DES_switch[i, 0] = yp2d[i, j]
             break
 
 
 C_mu = 0.09
-Lt = C_mu*(k_model2d + kres2d)**(3/2)/eps2d
+Lt = C_mu*((k_model2d + kres2d)**(3/2))/eps2d
 nu_t = vis2d-viscos
+nu_t_nu = nu_t/viscos
 boundary = np.zeros((ni, 1))
 for i in range(ni):
     for j in range(20,nj):
-        if nu_t[i, j]/viscos < 1:
+        if nu_t_nu[i,j] < 1:
             boundary[i, 0] = yp2d[i, j]
             break
 
 kappa = 0.41
 
-r_dt = nu_t/((kappa**2)*(dw**2)*s2_abs2d)
+r_dt = nu_t/((kappa**2)*(dw**2)*s_abs2d)
 
 f_dt = 1 - np.tanh((8*r_dt)**3)
-h_max = 0.128
+h_max = np.max(y2d[:,0])
 alpha = 0.25 - dw/h_max
-f_B = np.minimum(2*np.exp(-9*(alpha**2)), np.ones((ni, nj)))
+f_B = np.minimum(2*np.exp(-9*(alpha**2)), 1)
 
 f_d = np.maximum(1-f_dt, f_B)
 fd_switch = np.zeros((ni,1))
@@ -162,7 +162,7 @@ for i in range(ni):
             break
 
 
-F_DES = np.maximum(Lt/(C_des*delta), np.ones((ni,nj)))
+F_DES = np.maximum(Lt/(0.61*delta), 1)
 
 sst_des_switch = np.zeros((ni,1))
 
@@ -205,7 +205,7 @@ plt.ylabel("Blending functions", rotation=90, size=18)
 plt.yticks(size=14)
 plt.legend([r"$\psi$", "f_d"])
 plt.grid()
-plt.xlim([0, 0.1])
+plt.xlim([0, 0.2])
 plt.title(r"$\psi$ and f_d [x = 0.65, 0.8, 1.1, 1.3]")
 plt.savefig('Blending_U4.eps')
 
@@ -244,3 +244,108 @@ plt.legend(["IDDES", "SA DES", "SST DES", "DDES (f_dt)","f_d",r"Boundary layer $
 plt.grid()
 plt.title("Interface location")
 plt.savefig('interface_zoom.eps')
+
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], psi2d[ind_11, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], f_d[ind_11, :], '--')
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], f_dt[ind_11, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], psi_SA_DES[ind_11, :])
+plt.xlabel("wall distance")
+plt.ylabel("Blending functions", rotation=90, size=18)
+plt.yticks(size=14)
+plt.legend([r"$\psi$ IDDES", "f_d", "f_dt", r"$\psi$ SA DES"])
+plt.grid()
+plt.title(r"Blending functions and $\psi$ for x=1.1")
+plt.savefig('Blending_multiple.eps')
+
+# U.7
+
+fig1,ax1 = plt.subplots(figsize=(10, 6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], nu_t_nu[ind_065, :])
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], nu_t_nu[ind_08, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], nu_t_nu[ind_11, :])
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], nu_t_nu[ind_13, :])
+plt.xlabel("wall distance")
+plt.ylabel(r"$\nu_t/\nu$", rotation=90, size=18)
+#plt.yticks(size=14)
+plt.legend(["0.65", "0.8", "1.1", "1.3"])
+plt.grid()
+plt.title(r"$\nu_t / \nu$")
+plt.savefig('7nu_t_nu.eps')
+
+tau_12 = -2*nu_t*(dudy + dvdx)
+
+stress_ratio = tau_12/(tau_12 + uv2d)
+
+fig1,ax1 = plt.subplots(figsize=(10, 6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], stress_ratio[ind_065, :])
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], stress_ratio[ind_08, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], stress_ratio[ind_11, :])
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], stress_ratio[ind_13, :])
+plt.xlabel("wall distance")
+plt.ylabel(r"$\tau_{12}/(\tau_{12} + \bar{v}\prime_{1}\bar{v}\prime_{2})$", rotation=90, size=18)
+plt.legend(["0.65", "0.8", "1.1", "1.3"])
+plt.grid()
+plt.title(r"Ratio of modeled and resolved shear stress")
+plt.savefig('7tau_12uv.eps')
+
+fig1,ax1 = plt.subplots(figsize=(10, 6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], stress_ratio[ind_065, :])
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], stress_ratio[ind_08, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], stress_ratio[ind_11, :])
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], stress_ratio[ind_13, :])
+plt.xlim([0,0.08])
+plt.xlabel("wall distance")
+plt.ylabel(r"$\tau_{12}/(\tau_{12} + \bar{v}\prime_{1}\bar{v}\prime_{2})$", rotation=90, size=18)
+plt.legend(["0.65", "0.8", "1.1", "1.3"])
+plt.grid()
+plt.title(r"Ratio of modeled and resolved shear stress")
+plt.savefig('7tau_12uv_zoom.eps')
+
+k_ratio = k_model2d/(k_model2d + kres2d)
+
+fig1,ax1 = plt.subplots(figsize=(10, 6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], k_ratio[ind_065, :])
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], k_ratio[ind_08, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], k_ratio[ind_11, :])
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], k_ratio[ind_13, :])
+plt.xlabel("wall distance")
+plt.ylabel(r"$k_{model}/(k_{model} + k_{res})$", rotation=90, size=18)
+plt.legend(["0.65", "0.8", "1.1", "1.3"])
+plt.grid()
+plt.title(r"Ratio of modeled and resolved k")
+plt.savefig('7k_model_res.eps')
+
+fig1,ax1 = plt.subplots(figsize=(10, 6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(yp2d[ind_065, :]-yp2d[ind_065, 0], k_ratio[ind_065, :])
+plt.plot(yp2d[ind_08, :]-yp2d[ind_08, 0], k_ratio[ind_08, :])
+plt.plot(yp2d[ind_11, :]-yp2d[ind_11, 0], k_ratio[ind_11, :])
+plt.plot(yp2d[ind_13, :]-yp2d[ind_13, 0], k_ratio[ind_13, :])
+plt.xlim([0,0.08])
+plt.xlabel("wall distance")
+plt.ylabel(r"$k_{model}/(k_{model} + k_{res})$", rotation=90, size=18)
+plt.legend(["0.65", "0.8", "1.1", "1.3"])
+plt.grid()
+plt.title(r"Ratio of modeled and resolved k")
+plt.savefig('7k_model_res_zoom.eps')
+
+boundary_wall = boundary[:,0] - y2d[1:,0]
+dx_average = np.average(dx, 1)
+
+fig1,ax1 = plt.subplots(figsize=(10, 6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
+plt.plot(xp2d[:, 0], boundary_wall/dx_average)
+plt.plot(xp2d[:, 0], boundary_wall/dz)
+plt.xlabel("x")
+plt.ylabel(r"$\delta / \Delta$", rotation=90, size=18)
+plt.legend([r"$\Delta_{x}$", r"$\Delta_z$"])
+plt.grid()
+plt.title(r"Ratio of boundary layer and cell size")
+plt.savefig('7boundary_cell.eps')
+

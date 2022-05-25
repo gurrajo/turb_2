@@ -187,22 +187,37 @@ ind_13 = 145
 
 delta = 0.235
 
-fig1,ax1 = plt.subplots()
-plt.subplots_adjust(left=0.20, bottom=0.20)
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
 plt.plot(y_2d[ind_065, :]-y_2d[ind_065, 0], uv_2d[ind_065, :],'--')
 plt.plot(y_2d[ind_065, :]-y_2d[ind_065, 0], uv_model_2d[ind_065, :])
 plt.plot(y_2d[ind_08, :]-y_2d[ind_08, 0], uv_2d[ind_08, :],'--')
 plt.plot(y_2d[ind_08, :]-y_2d[ind_08, 0], uv_model_2d[ind_08, :])
+plt.grid()
+plt.xlabel("distance from wall")
+plt.ylabel("$uv$")
+plt.title("stresses")
+plt.yticks(size=14)
+plt.xticks(size=14)
+plt.legend(["Resolved 0.65","Modeled 0.65", "Resolved 0.8","Modeled 0.8"], prop={'size': 10})
+plt.xlim([0, 0.2])
+plt.savefig('stress_2b1.eps')
+
+fig1,ax1 = plt.subplots(figsize=(10,6))
+plt.subplots_adjust(left=0.15, bottom=0.15)
 plt.plot(y_2d[ind_11, :]-y_2d[ind_11, 0], uv_2d[ind_11, :],'--')
 plt.plot(y_2d[ind_11, :]-y_2d[ind_11, 0], uv_model_2d[ind_11, :])
 plt.plot(y_2d[ind_13, :]-y_2d[ind_13, 0], uv_2d[ind_13, :],'--')
 plt.plot(y_2d[ind_13, :]-y_2d[ind_13, 0], uv_model_2d[ind_13, :])
+plt.grid()
 plt.xlabel("distance from wall")
 plt.ylabel("$uv$")
-plt.title("stress")
-plt.legend(["Resolved 0.65","Modeled 0.65", "Resolved 0.8","Modeled 0.8", "Resolved 1.1","Modeled 1.1", "Resolved 1.3","Modeled 1.3"], prop={'size': 10})
-plt.xlim([0, 0.05])
-plt.savefig('stress_2b.eps')
+plt.title("stresses")
+plt.yticks(size=14)
+plt.xticks(size=14)
+plt.legend(["Resolved 1.1","Modeled 1.1", "Resolved 1.3","Modeled 1.3"], prop={'size': 10})
+plt.xlim([0, 0.2])
+plt.savefig('stress_2b2.eps')
 
 nu_t_nu = (vis_2d-viscos)/viscos
 nu_t_nu_212 = (vis_2d_212-viscos)/viscos
